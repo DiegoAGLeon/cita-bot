@@ -52,6 +52,7 @@ class OperationType(str, Enum):
     CERTIFICADOS_UE = "4038"  # POLICIA-CERTIFICADO DE REGISTRO DE CIUDADANO DE LA U.E.
     RECOGIDA_DE_TARJETA = "4036"  # POLICIA - RECOGIDA DE TARJETA DE IDENTIDAD DE EXTRANJERO (TIE)
     SOLICITUD_ASILO = "4104"  # POLICIA - SOLICITUD ASILO "4078"
+    SOLICITUD_ASILO_BARCELONA = "4078"
     TOMA_HUELLAS = "4010"  # POLICIA-TOMA DE HUELLAS (EXPEDICIÓN DE TARJETA) Y RENOVACIÓN DE TARJETA DE LARGA DURACIÓN
     NUEVA_NORMALIDAD = "4082"
 
@@ -284,6 +285,18 @@ def try_cita(context: CustomerProfile, cycles: int = CYCLES):
         speaker.say("FAIL")
         driver.quit()
 
+def nueva_normalidad_step2(driver: webdriver, context: CustomerProfile):
+    try:
+        WebDriverWait(driver, DELAY).until(EC.presence_of_element_located((By.ID, "txtIdCitado")))
+    except TimeoutException:
+        logging.error("Timed out waiting for form to load")
+        return None
+    
+    element = driver.find_element_by_id("txtIdCitado")
+    element.send_keys(context.doc_value, Keys.TAB, context.name, Keys.TAB, context.card_expire_date)
+
+    return True
+    
 
 def toma_huellas_step2(driver: webdriver, context: CustomerProfile):
     try:
@@ -738,11 +751,13 @@ def cycle_cita(driver: webdriver, context: CustomerProfile, fast_forward_url, fa
     # 2. Personal info:
     logging.info("[Step 1/6] Personal info")
     success = False
-    if context.operation_code == OperationType.TOMA_HUELLAS:
+    if context.operation_code == OperationType.NUEVA_NORMALIDAD:
+        success = nueva_normalidad_step2(driver, context)
+    elif context.operation_code == OperationType.TOMA_HUELLAS:
         success = toma_huellas_step2(driver, context)
     elif context.operation_code == OperationType.RECOGIDA_DE_TARJETA:
         success = recogida_de_tarjeta_step2(driver, context)
-    elif context.operation_code == OperationType.SOLICITUD_ASILO:
+    elif context.operation_code == OperationType.SOLICITUD_ASILO or context.operation_code == OperationType.SOLICITUD_ASILO_BARCELONA:
         success = solicitud_asilo_step2(driver, context)
     elif context.operation_code == OperationType.BREXIT:
         success = brexit_step2(driver, context)
@@ -919,7 +934,7 @@ def get_code(context: CustomerProfile):
 
 def add_reason(driver: webdriver, context: CustomerProfile):
     try:
-        if context.operation_code == OperationType.SOLICITUD_ASILO:
+        if context.operation_code == OperationType.SOLICITUD_ASILO or context.operation_code == OperationType.SOLICITUD_ASILO_BARCELONA:
             element = driver.find_element_by_id("txtObservaciones")
             element.send_keys(context.reason_or_type)
     except Exception as e:
