@@ -1,9 +1,13 @@
-grab_*.py
+#grab_*.py
 .vscode/
 .mypy_cache/
 __pycache__/
 examples/
 chrome_profiles/
 *.py[co]
+dist/
+build/
+grab_me.spec
+Nuevo documento de texto.txt
 
 .DS_Store
