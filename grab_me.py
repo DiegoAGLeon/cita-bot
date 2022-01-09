@@ -58,9 +58,9 @@ if __name__ == "__main__":
 
     customer = CustomerProfile(
         # Anti-captcha API Key (auto_captcha=False to disable it)
-        anticaptcha_api_key="... your key here ...",
+        anticaptcha_api_key="b8489c76a88a05c44ce1036b75769d5c",
         # Enable anti-captcha plugin (if False, you have to solve reCaptcha manually and press ENTER in the Terminal)
-        auto_captcha=False,
+        auto_captcha=True,
         auto_office=True,
         chrome_driver_path="C:/Users/jasil/AppData/Local/Programs/Python/Python38/chromedriver",
         save_artifacts=False,  # Record available offices / take available slots screenshot
