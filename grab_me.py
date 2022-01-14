@@ -59,6 +59,7 @@ if __name__ == "__main__":
     customer = CustomerProfile(
         # Anti-captcha API Key (auto_captcha=False to disable it)
         anticaptcha_api_key="b8489c76a88a05c44ce1036b75769d5c",
+        sms_webhook_token = "ea8a0124-0fdc-4e2f-a20d-a3f41b254f27",
         # Enable anti-captcha plugin (if False, you have to solve reCaptcha manually and press ENTER in the Terminal)
         auto_captcha=True,
         auto_office=True,
@@ -80,7 +81,7 @@ if __name__ == "__main__":
     )
 
     #   NOMBRE
-    label_nombre = Label(root, text="Ingrese el nombre")
+    label_nombre = Label(root, text="Ingrese el nombre:")
     label_nombre.pack()
     input_nombre = Entry(root, width=50)
     input_nombre.pack(ipady=3)

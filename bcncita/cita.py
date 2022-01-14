@@ -13,6 +13,7 @@ from datetime import datetime as dt
 from enum import Enum
 from typing import Any, Optional
 
+import asyncio
 import requests
 from anticaptchaofficial.imagecaptcha import imagecaptcha
 from anticaptchaofficial.recaptchav3proxyless import recaptchaV3Proxyless
@@ -510,7 +511,7 @@ def process_captcha(driver: webdriver, context: CustomerProfile):
         logging.info(
             "HEY, DO SOMETHING HUMANE TO TRICK THE CAPTCHA (select text, move cursor etc.) and press ENTER"
         )
-        for i in range(10):
+        for _ in range(10):
             speaker.say("ALARM")
         input()
 
@@ -916,8 +917,8 @@ def cita_selection(driver: webdriver, context: CustomerProfile):
             speaker.say("ENTER THE SHORT CODE FROM SMS")
 
             logging.info("Press Any button to CLOSE browser")
-            input()
-            driver.quit()
+            # input()
+            # driver.quit()
             os._exit(0)
 
     else:
