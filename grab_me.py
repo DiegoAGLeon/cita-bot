@@ -10,32 +10,35 @@ root = Tk()
 root.geometry("400x500")
 root.title("Formulario Citas")
 
+def switch_tipo_operacion(index):
+    switcher = {
+        "SOLICITUD DE ASILO": OperationType.SOLICITUD_ASILO,
+        "SOLICITUD DE ASILO BARCELONA/ALICANTE": OperationType.SOLICITUD_ASILO_BARCELONA,
+        "NUEVA NORMALIDAD": OperationType.NUEVA_NORMALIDAD,
+        "CERTIFICADOS DE RESIDENCIA": OperationType.CERTIFICADOS_RESIDENCIA,
+        "TOMA DE HUELLAS": OperationType.TOMA_HUELLAS,
+        "ASIGNACIÓN DE NIE": OperationType.ASIGNACION_DE_NIE,
+        "AUTORIZACIÓN DE RESIDENCIA TEMPORAL POR ARRAIGO": OperationType.AUTORIZACIÓN_DE_RESIDENCIA_TEMPORAL_ARRAIGO,
+    }
+    return switcher[index]
+
+def switch_provincia(index):
+    switcher = {
+        "Madrid": Province.MADRID,
+        "Barcelona": Province.BARCELONA,
+        "Alicante": Province.ALICANTE,
+    }
+    return switcher[index]
+
 def enviar_datos():
     customer.name = (input_nombre.get()).upper()
     customer.phone = input_telefono.get()
     customer.email = input_email.get()
     customer.doc_value = input_documento.get()
     customer.doc_type = DocType.PASSPORT if click_tipo_documento.get() == "Pasaporte" else DocType.NIE
-    #customer.province = Province.MADRID if click_provincia.get() == "Madrid" else Province.BARCELONA
-    if click_provincia.get() == "Madrid":
-        customer.province = Province.MADRID
-    elif click_provincia.get() == "Barcelona":
-        customer.province = Province.BARCELONA
-    else:
-        customer.province = Province.ALICANTE
+    customer.province = switch_provincia(click_provincia.get())
     customer.offices = [] if click_provincia.get() == "Madrid" or click_provincia.get() == "Alicante" else [Office.BARCELONA, Office.MATARO]
-    if click_tipo_operacion.get() == "SOLICITUD DE ASILO" and click_provincia.get() == "Madrid":
-        customer.operation_code = OperationType.SOLICITUD_ASILO
-    elif click_tipo_operacion.get() == "SOLICITUD DE ASILO" and (click_provincia.get() == "Barcelona" or click_provincia.get() == "Alicante"):
-        customer.operation_code = OperationType.SOLICITUD_ASILO_BARCELONA
-    elif click_tipo_operacion.get() == "TOMA DE HUELLAS":
-        customer.operation_code = OperationType.TOMA_HUELLAS
-    elif click_tipo_operacion.get() == "CERTIFICADOS DE RESIDENCIA":
-        customer.operation_code = OperationType.CERTIFICADOS_RESIDENCIA
-    elif click_tipo_operacion.get() == "NUEVA NORMALIDAD":
-        customer.operation_code = OperationType.NUEVA_NORMALIDAD
-    else:
-        customer.operation_code = OperationType.ASIGNACION_DE_NIE
+    customer.operation_code = switch_tipo_operacion(click_tipo_operacion.get())
     customer.card_expire_date = (datetime.date.today() + datetime.timedelta(days=1)).strftime("%d/%m/%Y")
     customer.country = input_pais.get()
     customer.year_of_birth = input_fecha_nacimiento.get()
@@ -43,7 +46,7 @@ def enviar_datos():
     # myLabel1 = Label(root, text=customer.name +" "+ customer.phone +" "+ customer.email +" "+ customer.doc_type +" "+ customer.doc_value +" "+ customer.province +" "+ customer.operation_code)
     # myLabel1.pack()
     if "--autofill" not in sys.argv:
-        try_cita(context=customer, cycles=1000)  # Try 200 times
+        try_cita(context=customer, cycles=1000)  # Try 1000 times
     else:
         from mako.template import Template
 
@@ -59,9 +62,9 @@ if __name__ == "__main__":
     customer = CustomerProfile(
         # Anti-captcha API Key (auto_captcha=False to disable it)
         anticaptcha_api_key="b8489c76a88a05c44ce1036b75769d5c",
-        sms_webhook_token = "ea8a0124-0fdc-4e2f-a20d-a3f41b254f27",
+        #sms_webhook_token = "ea8a0124-0fdc-4e2f-a20d-a3f41b254f27",
         # Enable anti-captcha plugin (if False, you have to solve reCaptcha manually and press ENTER in the Terminal)
-        auto_captcha=True,
+        auto_captcha=False,
         auto_office=True,
         chrome_driver_path="C:/Users/jasil/AppData/Local/Programs/Python/Python38/chromedriver",
         save_artifacts=False,  # Record available offices / take available slots screenshot
@@ -72,7 +75,7 @@ if __name__ == "__main__":
         country="ESPAÑA",
         name="DIEGO GIL",  # Your Name
         phone="641382759",  # Phone number (use this format, please)
-        email="myemail@gmail.com",  # Email
+        email="cuentarecuperacion211@gmail.com",  # Email
         year_of_birth = "2000",
         # Offices in order of preference
         # This selects specified offices one by one or a random one if not found.
@@ -97,7 +100,7 @@ if __name__ == "__main__":
     label_email = Label(root, text="Ingrese la dirección de correo eléctronico")
     label_email.pack()
     input_email = Entry(root, width=50)
-    input_email.insert(0, "myemail@gmail.com")
+    input_email.insert(0, "cuentarecuperacion211@gmail.com")
     input_email.pack(ipady=3)
 
      #   PAÍS
@@ -139,10 +142,13 @@ if __name__ == "__main__":
 
     #   TIPO DE OPERACIÓN
     opciones_tipo_operacion = ["SOLICITUD DE ASILO",
+                                "SOLICITUD DE ASILO BARCELONA/ALICANTE",
                                 "NUEVA NORMALIDAD",
                                 "CERTIFICADOS DE RESIDENCIA",
                                 "TOMA DE HUELLAS",
-                                "ASIGNACIÓN DE NIE"]
+                                "ASIGNACIÓN DE NIE",
+                                "AUTORIZACIÓN DE RESIDENCIA TEMPORAL POR ARRAIGO",
+                                ]
     click_tipo_operacion = StringVar()
     click_tipo_operacion.set(opciones_tipo_operacion[0])
     label_tipo_operacion = Label(root, text="Elija el tipo de operación")

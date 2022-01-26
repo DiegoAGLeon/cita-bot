@@ -13,7 +13,6 @@ from datetime import datetime as dt
 from enum import Enum
 from typing import Any, Optional
 
-import asyncio
 import requests
 from anticaptchaofficial.imagecaptcha import imagecaptcha
 from anticaptchaofficial.recaptchav3proxyless import recaptchaV3Proxyless
@@ -36,12 +35,10 @@ DELAY = 30  # timeout for page load
 
 speaker = new_speaker()
 
-
 class DocType(str, Enum):
     DNI = "dni"
     NIE = "nie"
     PASSPORT = "passport"
-
 
 class OperationType(str, Enum):
     AUTORIZACION_DE_REGRESO = "20"  # POLICIA-AUTORIZACIÓN DE REGRESO
@@ -57,7 +54,7 @@ class OperationType(str, Enum):
     TOMA_HUELLAS = "4010"  # POLICIA-TOMA DE HUELLAS (EXPEDICIÓN DE TARJETA) Y RENOVACIÓN DE TARJETA DE LARGA DURACIÓN
     NUEVA_NORMALIDAD = "4082"
     ASIGNACION_DE_NIE = "4031"
-
+    AUTORIZACIÓN_DE_RESIDENCIA_TEMPORAL_ARRAIGO = "10"
 
 class Office(str, Enum):
     # Barcelona
@@ -92,7 +89,6 @@ class Office(str, Enum):
     OUE_SANTA_CRUZ = "1"  # 1 OUE SANTA CRUZ DE TENERIFE,  C/LA MARINA, 20
     PLAYA_AMERICAS = "2"  # CNP-Playa de las Américas, Av. de los Pueblos, 2
     PUERTO_CRUZ = "3"  # CNP-Puerto de la Cruz/Los Realejos, Av. del Campo y Llarena, 3
-
 
 class Province(str, Enum):
     A_CORUÑA = "15"
@@ -287,6 +283,23 @@ def try_cita(context: CustomerProfile, cycles: int = CYCLES):
         speaker.say("FAIL")
         driver.quit()
 
+def autorización_de_residencia_temporal_arraigo(driver: webdriver, context: CustomerProfile):
+    try:
+        WebDriverWait(driver, DELAY).until(EC.presence_of_element_located((By.ID, "txtIdCitado")))
+    except TimeoutException:
+        logging.error("Timed out waiting for form to load")
+        return None
+    
+        # Enter doc number and name
+    element = driver.find_element_by_id("txtIdCitado")
+    element.send_keys(context.doc_value, Keys.TAB, context.name, Keys.TAB, context.year_of_birth)
+
+    # Select country
+    select = Select(driver.find_element_by_id("txtPaisNac"))
+    select.select_by_visible_text(context.country)
+
+    return True
+
 def asignacion_nie(driver: webdriver, context: CustomerProfile):
     try:
         WebDriverWait(driver, DELAY).until(EC.presence_of_element_located((By.ID, "txtIdCitado")))
@@ -389,8 +402,11 @@ def solicitud_asilo_step2(driver: webdriver, context: CustomerProfile):
     element.send_keys(context.doc_value, Keys.TAB, context.name, Keys.TAB, context.year_of_birth)
 
     # Select country
-    select = Select(driver.find_element_by_id("txtPaisNac"))
-    select.select_by_visible_text(context.country)
+    try:
+        select = Select(driver.find_element_by_id("txtPaisNac"))
+        select.select_by_visible_text(context.country)
+    except:
+        pass
 
     return True
 
@@ -676,7 +692,7 @@ def office_selection(driver: webdriver, context: CustomerProfile):
             btn.send_keys(Keys.ENTER)
             return True
         elif "En este momento no hay citas disponibles" in resp_text:
-            time.sleep(5)
+            time.sleep(2)
             driver.refresh()
             continue
         else:
@@ -778,6 +794,8 @@ def cycle_cita(driver: webdriver, context: CustomerProfile, fast_forward_url, fa
     success = False
     if context.operation_code == OperationType.NUEVA_NORMALIDAD:
         success = nueva_normalidad_step2(driver, context)
+    elif context.operation_code == OperationType.AUTORIZACIÓN_DE_RESIDENCIA_TEMPORAL_ARRAIGO:
+        success = autorización_de_residencia_temporal_arraigo(driver, context)
     elif context.operation_code == OperationType.TOMA_HUELLAS:
         success = toma_huellas_step2(driver, context)
     elif context.operation_code == OperationType.RECOGIDA_DE_TARJETA:
